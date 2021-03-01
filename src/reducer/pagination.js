@@ -1,60 +1,89 @@
-import { actionType } from '../action/actionType';
-import studentData from '../studentData';
+import { actionTypes } from "../action/actionTypes";
+import { studentData } from "../studentData";
 
-const calculateTotalPage = () => {
-    const itemPerPage = 6;
-    switch(studentData.length % itemPerPage) {
-        case 0: {
-            return studentData.length/itemPerPage;
-        }
-        default: 
-            return Math.floor(studentData.length/itemPerPage) + 1;
-    }
-}
+const pageNumbers = (studentList) => {
+  const itemPerPage = 6;
+  const pageNumber = [];
+  for (let i = 1; i <= Math.ceil(studentList / itemPerPage); i++) {
+    pageNumber.push(i);
+  }
+  return pageNumber;
+};
 
-
-export const pagination = (state = {
-    total: calculateTotalPage(),
+export const pagination = (
+  state = {
+    pageNumbers: pageNumbers(studentData.length),
     currentPage: 1,
-    pagesNumber: [1, 2, 3, 4, 5]
-}, action) => {
-    switch(action.type) {
-        case actionType.MOVE_TO_NEXTPAGE: {
-            return {
-                ...state,
-                currentPage: state.currentPage + 1,
-            }
-        } 
-        case actionType.MOVE_TO_PREVIOUSPAGE: {
-            return {
-                ...state,
-                currentPage: state.currentPage - 1,
-            }
-        } 
-        case actionType.MOVE_EXACTLY_TO_PAGE: {
-            return {
-                ...state,
-                currentPage: action.payload.page,
-            }
-         
-        }
-        case actionType.INCREASE_PAGENUMBER: {
-            return {
-                ...state,
-                pagesNumber: state.pagesNumber.map(number => number + 1)
-            }
-         
-        }
-        case actionType.DECREASE_PAGENUMBER: {
-            return {
-                ...state,
-                pagesNumber: state.pagesNumber.map(number => number - 1)
-            }
-         
-        }
-
-        default: return state;
+    startPagesButtonRendered: 1,
+  },
+  action
+) => {
+  switch (action.type) {
+    case actionTypes.MOVE_TO_NEXTPAGE: {
+      return handleNextPage(state);
     }
-}
+    case actionTypes.MOVE_TO_PREVIOUSPAGE: {
+      return handlePrePage(state);
+    }
+    case actionTypes.MOVE_EXACTLY_TO_PAGE: {
+      return {
+        ...state,
+        currentPage: action.payload.page,
+      };
+    }
+    case actionTypes.CHANGE_PAGENUMBERS: {
+      return {
+        ...state,
+        pageNumbers: pageNumbers(action.payload.studentList),
+      };
+    }
+    // case actionTypes.DECREASE_PAGENUMBER: {
+    //   return {
+    //     ...state,
+    //     pagesNumber: state.pagesNumber.map((number) => number - 1),
+    //   };
+    // }
 
+    default:
+      return state;
+  }
+};
 
+const handlePrePage = (currentState) => {
+  if (currentState.startPagesButtonRendered > 1) {
+    return {
+      ...currentState,
+      currentPage: currentState.currentPage - 1,
+      startPagesButtonRendered: currentState.startPagesButtonRendered - 1,
+    };
+  } else if (currentState.currentPage > 1) {
+    return {
+      ...currentState,
+      currentPage: currentState.currentPage - 1,
+    };
+  } else {
+    return { ...currentState, startPagesButtonRendered: 1 };
+  }
+};
+const handleNextPage = (currentState) => {
+  if (
+    currentState.startPagesButtonRendered <
+    currentState.pageNumbers.length - 2
+  ) {
+    return {
+      ...currentState,
+      currentPage: currentState.currentPage + 1,
+      startPagesButtonRendered: currentState.startPagesButtonRendered + 1,
+    };
+  } else if (currentState.currentPage < currentState.pageNumbers.length) {
+    return {
+      ...currentState,
+      currentPage: currentState.currentPage + 1,
+    };
+  } else {
+    return {
+      ...currentState,
+      startPagesButtonRendered: currentState.pageNumbers.length - 2,
+    };
+  }
+};

@@ -1,53 +1,44 @@
-import React from 'react';
-import style from './StudentList.module.css';
-import StudentItem  from './StudentItem';
-import { useSelector } from 'react-redux';
+import React from "react";
+import style from "./StudentList.module.css";
+import StudentItem from "./StudentItem";
+// import { studentData } from "../studentData";
+import { useSelector } from "react-redux";
+// import { setStudenList } from "../StudentService";
 
 export default function StudentList() {
-    const studentList = useSelector(state => state.students.studentList);
-    const totalStudent = useSelector(state => state.students.totalStudent);
-    const currentPage = useSelector(state => state.pagination.currentPage);
-    const studentMatchedWithSearch = useSelector(state => state.students.studentMatchedWithSearch);
-    
-    const filterStudentIndex = () => ([
-        (currentPage - 1) * 6,
-        (currentPage - 1) * 6 + 1,
-        (currentPage - 1) * 6 + 2,
-        (currentPage - 1) * 6 + 3,
-        (currentPage - 1) * 6 + 4,
-        (currentPage - 1) * 6 + 5
-    ].filter(page => page < totalStudent));
+  const isFinded = useSelector((state) => state.students.isFinded);
+  const isSearching = useSelector((state) => state.students.isSearching);
+  const studentList = JSON.parse(localStorage.getItem("studentList"));
+  const studentFinded = useSelector((state) => state.students.studentList);
+  // const totalStudent = useSelector((state) => state.students.totalStudent);
+  const currentPage = useSelector((state) => state.pagination.currentPage);
 
-    
-    const renderStudentList = () => (
-        filterStudentIndex().map(item => studentList[item])
-        .map(student =>
-            <StudentItem 
-                key = {student.id}
-                student = {student}
-            />
-        )
+  // setStudenList(studentListStoreage);
+  // const getStudentList = () => {
+  //   const studentList = localStorage.getItem("studentList");
+  //   return JSON.parse(studentList);
+  // };
+  // console.log(getStudentList());
+  const renderStudentList = () =>
+    studentList
+      .slice((currentPage - 1) * 6, currentPage * 6)
+      .map((student) => <StudentItem key={student.id} student={student} />);
+
+  const renderSearchedList = () => {
+    return isFinded ? (
+      studentFinded
+        .slice((currentPage - 1) * 6, currentPage * 6)
+        .map((student) => <StudentItem key={student.id} student={student} />)
+    ) : (
+      <div className={style.studentItem}>
+        <div className={style.name}>Không tìm thấy sinh viên nào</div>
+      </div>
     );
+  };
 
-    const renderSearchedList = () => (
-        studentMatchedWithSearch.map(student => 
-            <StudentItem 
-                key = {student.id}
-                student = {student}
-            />   
-        )
-    );
-
-    if (studentMatchedWithSearch.length === 0) {
-        return (
-            <div className = {style.list} >
-                {renderStudentList()}
-            </div>
-        );
-    } else return (
-            <div className = {style.list} >
-                {renderSearchedList()}
-            </div>
-        );
-    
+  return isSearching ? (
+    <div className={style.list}>{renderSearchedList()}</div>
+  ) : (
+    <div className={style.list}>{renderStudentList()}</div>
+  );
 }
